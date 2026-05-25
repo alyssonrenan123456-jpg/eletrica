@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dimensionamento Elétrico Simplificado</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; background:#f7f7f9; color:#222; }
+    h1 { margin-bottom: .5rem; }
+    .box { background:#fff; border-radius:10px; padding:1rem; box-shadow: 0 2px 8px rgba(0,0,0,.08); margin-bottom:1rem; }
+    table { width:100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #ddd; padding: .6rem; text-align:left; }
+    th { background:#efefef; }
+    .row { display:flex; gap:.5rem; margin-bottom:.5rem; }
+    input, select, button { padding:.5rem; }
+    .erro { color:#b00020; font-weight:bold; }
+  </style>
+</head>
+<body>
+  <h1>Dimensionamento Elétrico (Simplificado)</h1>
+  <p>Informe qualquer equipamento, potência e tipo de agrupamento.</p>
+
+  <div class="box">
+    <form method="POST">
+      <label for="tensao_v">Tensão do sistema (V):</label>
+      <input id="tensao_v" name="tensao_v" type="number" step="0.01" value="{{ tensao_padrao }}" required />
+
+      <h3>Equipamentos</h3>
+      <div id="equipamentos"></div>
+      <button type="button" onclick="adicionarLinha()">+ Adicionar equipamento</button>
+      <button type="submit">Calcular</button>
+    </form>
+  </div>
+
+  {% if erro %}
+    <p class="erro">{{ erro }}</p>
+  {% endif %}
+
+  {% if resultado %}
+  <div class="box">
+    <h2>Resultado por circuito</h2>
+    {% for c in resultado %}
+      <h3>{{ c.circuito }}</h3>
+      <p>
+        Itens:
+        {% for item in c.itens %}
+          {{ item.nome }} ({{ item.potencia_w }}W){% if not loop.last %}, {% endif %}
+        {% endfor %}
+      </p>
+      <table>
+        <tr><th>Potência total</th><td>{{ c.potencia_total_w }} W</td></tr>
+        <tr><th>Corrente estimada</th><td>{{ c.corrente_a }} A</td></tr>
+        <tr><th>Corrente de projeto (x1.25)</th><td>{{ c.corrente_projeto_a }} A</td></tr>
+        <tr><th>Disjuntor sugerido</th><td>{{ c.disjuntor_a }} A</td></tr>
+        <tr><th>Cabo sugerido (cobre)</th><td>{{ c.cabo_mm2 }} mm²</td></tr>
+      </table>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <script>
+    function adicionarLinha() {
+      const div = document.getElementById('equipamentos');
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `
+        <input name="nome[]" placeholder="Nome do equipamento" required />
+        <input name="potencia[]" type="number" step="0.01" min="0" placeholder="Potência (W)" required />
+        <select name="grupo[]">
+          <option value="tomadas">Tomadas (TUG)</option>
+          <option value="iluminacao">Iluminação</option>
+          <option value="dedicado">Circuito dedicado</option>
+        </select>
+      `;
+      div.appendChild(row);
+    }
+
+    adicionarLinha();
+    adicionarLinha();
+  </script>
+</body>
+</html>
